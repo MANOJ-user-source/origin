@@ -21,12 +21,10 @@ requests==2.31.0
 # Gunicorn for production
 gunicorn==21.2.0
 
-# ML dependencies - memory optimized
-sentence-transformers==2.2.2
-torch==2.0.1+cpu  # CPU-only version
-transformers==4.30.2
-faiss-cpu==1.7.4
-numpy==1.24.3
+# Optional: Smaller ML alternatives (commented out for now)
+# sentence-transformers==2.2.2  # Heavy - use only if needed
+# torch==2.0.1  # Very heavy - consider alternatives
+# transformers==4.30.2  # Heavy - use only if needed
 
-# Development dependencies
+# Development dependencies (remove in production)
 Werkzeug==2.3.6
