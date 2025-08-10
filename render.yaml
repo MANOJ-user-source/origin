@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: semantic-chat-app
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app_enhanced:app
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: semantic-chat-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_ENV
+        value: production
+
+databases:
+  - name: semantic-chat-db
+    databaseName: semantic_chat
+    user: semantic_user
+    plan: starter

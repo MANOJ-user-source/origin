@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - RAG Story App{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-comments"></i> Ask Questions About Your Stories</h2>
+        <p class="text-muted">Ask anything about your uploaded stories</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Chat Interface</h5>
+            </div>
+            <div class="card-body d-flex flex-column">
+                <div id="chat-messages" class="chat-container border rounded p-3 mb-3 flex-grow-1 overflow-auto">
+                    <div class="text-center text-muted">
+                        <i class="fas fa-info-circle"></i> Start by asking a question below.
+                    </div>
+                </div>
+                <form id="chat-form" class="d-flex">
+                    <input type="text" id="question-input" class="form-control me-2" placeholder="Type your question..." autocomplete="off" required>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const chatForm = document.getElementById('chat-form');
+    const questionInput = document.getElementById('question-input');
+    const chatMessages = document.getElementById('chat-messages');
+
+    function appendMessage(text, sender = 'bot', source = null) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', sender);
+
+        const contentDiv = document.createElement('div');
+        contentDiv.classList.add('message-content');
+        contentDiv.textContent = text;
+        messageDiv.appendChild(contentDiv);
+
+        if (source) {
+            const sourceDiv = document.createElement('div');
+            sourceDiv.classList.add('source-text');
+            sourceDiv.textContent = 'Source: ' + source;
+            messageDiv.appendChild(sourceDiv);
+        }
+
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const question = questionInput.value.trim();
+        if (!question) return;
+
+        appendMessage(question, 'user');
+        questionInput.value = '';
+        questionInput.disabled = true;
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ question })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                appendMessage(data.answer, 'bot');
+                if (data.sources && data.sources.length > 0) {
+                    data.sources.forEach(src => {
+                        appendMessage(src, 'bot', src);
+                    });
+                }
+            } else {
+                appendMessage('Error: ' + (data.error || 'Unknown error'), 'bot');
+            }
+        } catch (err) {
+            appendMessage('Error: ' + err.message, 'bot');
+        } finally {
+            questionInput.disabled = false;
+            questionInput.focus();
+        }
+    });
+});
+</script>
+{% endblock %}
