@@ -2,8 +2,16 @@ services:
   - type: web
     name: semantic-chat-app
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app_enhanced:app
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: |
+      python -m gunicorn app_enhanced:app \
+        --bind 0.0.0.0:5000 \
+        --workers=1 \
+        --threads=2 \
+        --timeout=120 \
+        --preload
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -13,6 +21,18 @@ services:
         generateValue: true
       - key: FLASK_ENV
         value: production
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: TRANSFORMERS_CACHE
+        value: /tmp/transformers_cache
+      - key: HF_HOME
+        value: /tmp/hf_cache
+    # Add memory and CPU limits
+    plan: starter
+    disk:
+      name: cache
+      mountPath: /tmp
+      sizeGB: 1
 
 databases:
   - name: semantic-chat-db
